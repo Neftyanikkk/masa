@@ -5,17 +5,18 @@ clear
 
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="                     
                       
-                     echo -e '\e[40m\e[91m'
-echo -e ' ____                           __'
-echo -e '/\  _`\                        /\ \__'
-echo -e '\ \ \/\_\  _ __   __  __  _____\ \ ,_\   ___     ___'
-echo -e ' \ \ \/_/_/\`'__\/\ \/\ \/\ '__`\ \ \/  / __`\ /' _ `\'
-echo -e '  \ \ \L\ \ \ \/ \ \ \_\ \ \ \L\ \ \ \_/\ \L\ \/\ \/\ \'
-echo -e '   \ \____/\ \_\  \/`____ \ \ ,__/\ \__\ \____/\ \_\ \_\'
-echo -e '    \/___/  \/_/   `/___/> \ \ \/  \/__/\/___/  \/_/\/_/'
-echo -e '                      /\___/\ \_\'
-echo -e '                      \/__/  \/_/'
+echo -e '\e[1m\e[32m6'
+echo -e '   ____                           __                        '
+echo -e '  /\  _`\                        /\ \__                     '
+echo -e '  \ \ \/\_\  _ __   __  __  _____\ \ ,_\   ___     ___      '
+echo -e '   \ \ \/_/_/\`__\/\ \/\ \/\ __ \ \ \/  //  _  \ /   _ \    '
+echo -e '    \ \ \L\ \ \ \/ \ \ \_\ \ \ \L\ \ \ \_/\ \L\ \/\ \/\ \   '
+echo -e '     \ \____/\ \_\  \/`____ \ \ ,__/\ \__\ \____/\ \_\ \_\  '
+echo -e '      \/___/  \/_/   `/___/> \ \ \/  \/__/\/___/  \/_/\/_/  '
+echo -e '                        /\___/\ \_\                         '
+echo -e '                        \/__/  \/_/                         '
 echo -e '\e[0m'
+
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="
 sleep 2
 
@@ -91,4 +92,8 @@ sudo systemctl daemon-reload
 
 sudo systemctl enable masad
 
-sudo systemctl restart masad && journalctl -u masad -f -o cat
+sudo systemctl restart masad
+
+. <(wget -qO- https://raw.githubusercontent.com/usrbad/masa-node-v1.0/main/addbootnode.sh)
+
+

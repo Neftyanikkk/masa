@@ -5,7 +5,7 @@ clear
 
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="                     
                       
-echo -e '\e[1m\e[32m6'
+echo -e '\e[1m\e[32m'
 echo -e '   ____                           __                        '
 echo -e '  /\  _`\                        /\ \__                     '
 echo -e '  \ \ \/\_\  _ __   __  __  _____\ \ ,_\   ___     ___      '
@@ -48,7 +48,7 @@ geth --datadir data init ./network/testnet/genesis.json
 
 
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="
-echo -e "\e[1m\e[32m6. Enter Node name \e[0m"
+echo -e "\e[1m\e[32m Enter Node name \e[0m"
 read -p "Node Name : " MASA_NODENAME
 
 echo -e "\e[1m\e[92m Node Name: \e[0m" $NODE_NAME

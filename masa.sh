@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y vim nano git curl wget htop bash-completion xz-utils zip unzip ufw locales net-tools mc jq make gcc gpg build-essential ncdu sysstat
+sudo apt install curl tar wget clang pkg-config libssl-dev jq build-essential git make ncdu net-tools -y
 clear
 
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="                     
@@ -20,32 +20,81 @@ echo -e '\e[0m'
 echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="
 sleep 2
 
-# Установите требуемые пакеты
-sudo apt install -y ca-certificates curl gnupg lsb-release # Добавьте в систему GPG-ключ Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg # Добавьте в систему репозиторий Docker
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Install GO 1.17.2
+ver="1.17.2"
+cd $HOME
+wget "https://golang.org/dl/go$ver.linux-amd64.tar.gz"
+sudo rm -rf /usr/local/go
+sudo tar -C /usr/local -xzf "go$ver.linux-amd64.tar.gz"
+rm "go$ver.linux-amd64.tar.gz"
+echo "export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin" >> ~/.bash_profile
+source ~/.bash_profile
+go version
 
-# Обновите список пакетов в репозиториях и установите Docker
-sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io
+# build binary
+cd $HOME
+rm -rf masa-node-v1.0
+git clone https://github.com/masa-finance/masa-node-v1.0
 
-# Проверка установленной версии Docker
-sudo docker --version
+cd masa-node-v1.0/src
+git checkout v1.03
+make all
 
-# Загружаем Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-# Устанавливаем необходимые привилегии для запуска Docker Compose
-sudo chmod +x /usr/local/bin/docker-compose
-# Проверка установленной версии Docker Compose
-docker-compose --version
+# copy binaries
+cd $HOME/masa-node-v1.0/src/build/bin
+sudo cp * /usr/local/bin
 
-# Переходим в домашнюю директорию пользователя
-cd ~
-# Клонируем репозиторий Masa Finance
-git clone https://github.com/masa-finance/masa-node-v1.0.git
+# init
+cd $HOME/masa-node-v1.0
+geth --datadir data init ./network/testnet/genesis.json
 
-# Перейдите в рабочую директорию Masa
-cd ~/masa-node-v1.0
-# Запустите контейнер Masa с помощью Docker Compose
-PRIVATE_CONFIG=ignore docker-compose up -d
+
+echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="
+echo -e "\e[1m\e[32m Enter Node name \e[0m"
+read -p "Node Name : " MASA_NODENAM
+
+echo -e "\e[1m\e[92m Node Name: \e[0m" $MASA_NODENAM
+
+echo "=+=+=+=+=+=++=+=++=crypton=+=+=+=+=+=++=+=++="
+
+
+# Create service (copy-paste all lines at once)
+
+tee $HOME/masad.service > /dev/null <<EOF
+[Unit]
+Description=MASA103
+After=network.target
+[Service]
+Type=simple
+User=$USER
+ExecStart=$(which geth) \
+  --identity ${MASA_NODENAME} \
+  --datadir $HOME/masa-node-v1.0/data \
+  --port 30300 \
+  --syncmode full \
+  --verbosity 5 \
+  --emitcheckpoints \
+  --istanbul.blockperiod 10 \
+  --mine \
+  --miner.threads 1 \
+  --networkid 190260 \
+  --http --http.corsdomain "*" --http.vhosts "*" --http.addr 127.0.0.1 --http.port 8545 \
+  --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,istanbul \
+  --maxpeers 50 \
+  --bootnodes enode://91a3c3d5e76b0acf05d9abddee959f1bcbc7c91537d2629288a9edd7a3df90acaa46ffba0e0e5d49a20598e0960ac458d76eb8fa92a1d64938c0a3a3d60f8be4@54.158.188.182:21000
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=4096
+Environment="PRIVATE_CONFIG=ignore"
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo mv $HOME/masad.service /etc/systemd/system
+
+# Start service
+sudo systemctl daemon-reload
+sudo systemctl enable masad
+sudo systemctl restart masad && journalctl -u masad -f -o cat
+
+
